@@ -452,18 +452,20 @@
 //   2. Enter it in the banner at the top of the page
 const OWM_KEY = '529bb1102a3ab43fdd3505a58210df9d';
 
-// Cities to monitor (name, lat, lon)
+// Cities to monitor — weighted toward tropical/high-humidity regions
 const CITIES = [
-  { name: 'Manila, PH',     lat: 14.5995, lon: 120.9842, flag: '🇵🇭' },
-  { name: 'Mumbai, IN',     lat: 19.0760, lon: 72.8777,  flag: '🇮🇳' },
-  { name: 'São Paulo, BR',  lat: -23.5505, lon: -46.6333, flag: '🇧🇷' },
-  { name: 'London, UK',     lat: 51.5074, lon: -0.1278,  flag: '🇬🇧' },
-  { name: 'Nairobi, KE',   lat: -1.2921, lon: 36.8219,  flag: '🇰🇪' },
-  { name: 'Jakarta, ID',   lat: -6.2088, lon: 106.8456,  flag: '🇮🇩' },
-  { name: 'New York, US',  lat: 40.7128, lon: -74.0060,  flag: '🇺🇸' },
-  { name: 'Sydney, AU',    lat: -33.8688, lon: 151.2093, flag: '🇦🇺' },
-  { name: 'Shanghai, CN',  lat: 31.2304, lon: 121.4737,  flag: '🇨🇳' },
-  { name: 'Lagos, NG',     lat: 6.5244,  lon: 3.3792,    flag: '🇳🇬' },
+  { name: 'Manila, PH',       lat: 14.5995,  lon: 120.9842,  flag: '🇵🇭' },
+  { name: 'Mumbai, IN',       lat: 19.0760,  lon: 72.8777,   flag: '🇮🇳' },
+  { name: 'Jakarta, ID',      lat: -6.2088,  lon: 106.8456,  flag: '🇮🇩' },
+  { name: 'Bangkok, TH',      lat: 13.7563,  lon: 100.5018,  flag: '🇹🇭' },
+  { name: 'Lagos, NG',        lat: 6.5244,   lon: 3.3792,    flag: '🇳🇬' },
+  { name: 'Dhaka, BD',        lat: 23.8103,  lon: 90.4125,   flag: '🇧🇩' },
+  { name: 'São Paulo, BR',    lat: -23.5505, lon: -46.6333,  flag: '🇧🇷' },
+  { name: 'Ho Chi Minh, VN',  lat: 10.8231,  lon: 106.6297,  flag: '🇻🇳' },
+  { name: 'Kolkata, IN',      lat: 22.5726,  lon: 88.3639,   flag: '🇮🇳' },
+  { name: 'Nairobi, KE',      lat: -1.2921,  lon: 36.8219,   flag: '🇰🇪' },
+  { name: 'London, UK',       lat: 51.5074,  lon: -0.1278,   flag: '🇬🇧' },
+  { name: 'New York, US',     lat: 40.7128,  lon: -74.0060,  flag: '🇺🇸' },
 ];
 
 // ══════════════════════════════════════════════
@@ -637,13 +639,13 @@ async function fetchCityWeather(city, key) {
   const clouds = data.clouds ? data.clouds.all : 0;
 
   // Rain intensity: blend of actual rain, humidity and cloud cover
-  // Rain mm/h is weighted most heavily, but humidity + clouds lift the baseline
-  const rainScore     = Math.min(1, rain1h / 10);        // 10mm/h = full rain score
-  const humidityScore = Math.min(1, humidity / 100);     // 100% humidity = full score
-  const cloudScore    = Math.min(1, clouds / 100);       // 100% clouds = full score
+  // Tropical cities typically have 70-90% humidity = healthy baseline of 45-65
+  const rainScore     = Math.min(1, rain1h / 8);              // 8mm/h = full rain score
+  const humidityScore = Math.max(0, (humidity - 30) / 70);   // 30% = 0, 100% = 1
+  const cloudScore    = Math.min(1, clouds / 100);            // 100% clouds = full score
 
-  // Weighted blend: rain 50%, humidity 30%, clouds 20%
-  const intensity = (rainScore * 0.5) + (humidityScore * 0.3) + (cloudScore * 0.2);
+  // Weighted blend: rain 45%, humidity 40%, clouds 15%
+  const intensity = (rainScore * 0.45) + (humidityScore * 0.40) + (cloudScore * 0.15);
 
   return {
     name: city.name,
