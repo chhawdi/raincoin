@@ -332,12 +332,12 @@
 
 <!-- Stats bar -->
 <div class="stats-bar">
-  <div class="stat-item"><div class="stat-label">Price</div><div class="stat-value" id="s-price">$0.004218</div><div class="stat-change up" id="s-change">▲ +2.31%</div></div>
-  <div class="stat-item"><div class="stat-label">Market Cap</div><div class="stat-value">$42.1M</div><div class="stat-change up">▲ +1.8%</div></div>
+  <div class="stat-item"><div class="stat-label">Price</div><div class="stat-value" id="s-price">—</div><div class="stat-change neutral" id="s-change">fetching...</div></div>
+  <div class="stat-item"><div class="stat-label">Market Cap</div><div class="stat-value" id="s-mcap">—</div><div class="stat-change neutral" id="s-mcap-change">↻ Live</div></div>
   <div class="stat-item"><div class="stat-label">Rain Index</div><div class="stat-value" id="s-rain-index">—</div><div class="stat-change neutral" id="s-rain-status">Fetching...</div></div>
   <div class="stat-item"><div class="stat-label">Rainy Cities</div><div class="stat-value" id="s-rainy">—</div><div class="stat-change neutral">↻ Live</div></div>
-  <div class="stat-item"><div class="stat-label">Holders</div><div class="stat-value">87,440</div><div class="stat-change up">▲ +1,200 today</div></div>
-  <div class="stat-item"><div class="stat-label">24h Volume</div><div class="stat-value">$8.3M</div><div class="stat-change up">▲ +44%</div></div>
+  <div class="stat-item"><div class="stat-label">Holders</div><div class="stat-value" id="s-holders">—</div><div class="stat-change neutral" id="s-holders-change">↻ Live</div></div>
+  <div class="stat-item"><div class="stat-label">24h Volume</div><div class="stat-value" id="s-volume">—</div><div class="stat-change neutral" id="s-volume-change">↻ Live</div></div>
 </div>
 
 <!-- API Key Setup Banner -->
@@ -457,6 +457,58 @@
 //   1. Replace the string below with your key, OR
 //   2. Enter it in the banner at the top of the page
 const OWM_KEY = '529bb1102a3ab43fdd3505a58210df9d';
+
+// ══════════════════════════════════════════════
+// LIVE TOKEN STATS — DexScreener API
+// ══════════════════════════════════════════════
+const TOKEN_CA = 'BbbEUV7Dk4uRRUSLZmkNuBhE5iprfrayVioG4EkQpump';
+
+function fmt(n) {
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(1) + 'K';
+  return '$' + n.toFixed(2);
+}
+
+async function fetchTokenStats() {
+  try {
+    const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN_CA}`);
+    const data = await res.json();
+    const pair = data.pairs && data.pairs[0];
+    if (!pair) return;
+
+    // Price
+    const price = parseFloat(pair.priceUsd);
+    const priceChange = parseFloat(pair.priceChange?.h24 || 0);
+    document.getElementById('s-price').textContent = price < 0.01
+      ? '$' + price.toFixed(8)
+      : '$' + price.toFixed(4);
+    const priceEl = document.getElementById('s-change');
+    priceEl.textContent = (priceChange >= 0 ? '▲ +' : '▼ ') + priceChange.toFixed(2) + '%';
+    priceEl.className = 'stat-change ' + (priceChange >= 0 ? 'up' : 'down');
+
+    // Market cap
+    const mcap = pair.marketCap || pair.fdv || 0;
+    document.getElementById('s-mcap').textContent = fmt(mcap);
+    document.getElementById('s-mcap-change').textContent = '↻ Live';
+
+    // Volume 24h
+    const vol = pair.volume?.h24 || 0;
+    document.getElementById('s-volume').textContent = fmt(vol);
+
+    // Holders — DexScreener doesn't provide holders, use txns as proxy
+    const txns = (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0);
+    document.getElementById('s-holders').textContent = txns > 0 ? txns + ' txns' : '—';
+    document.getElementById('s-holders-change').textContent = '24h trades';
+
+  } catch (err) {
+    console.warn('Token stats fetch failed:', err);
+  }
+}
+
+// Fetch immediately and every 60 seconds
+fetchTokenStats();
+setInterval(fetchTokenStats, 60000);
 
 // Cities to monitor — weighted toward tropical/high-humidity regions
 const CITIES = [
