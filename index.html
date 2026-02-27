@@ -633,7 +633,18 @@ async function fetchCityWeather(city, key) {
   const rain1h = data.rain ? (data.rain['1h'] || data.rain['3h'] / 3 || 0) : 0;
   const weatherId = data.weather[0].id;
   const isStorm = weatherId < 300;
-  const intensity = Math.min(1, rain1h / 15); // 15mm/h = max intensity
+  const humidity = data.main.humidity || 0;
+  const clouds = data.clouds ? data.clouds.all : 0;
+
+  // Rain intensity: blend of actual rain, humidity and cloud cover
+  // Rain mm/h is weighted most heavily, but humidity + clouds lift the baseline
+  const rainScore     = Math.min(1, rain1h / 10);        // 10mm/h = full rain score
+  const humidityScore = Math.min(1, humidity / 100);     // 100% humidity = full score
+  const cloudScore    = Math.min(1, clouds / 100);       // 100% clouds = full score
+
+  // Weighted blend: rain 50%, humidity 30%, clouds 20%
+  const intensity = (rainScore * 0.5) + (humidityScore * 0.3) + (cloudScore * 0.2);
+
   return {
     name: city.name,
     flag: city.flag,
@@ -642,7 +653,8 @@ async function fetchCityWeather(city, key) {
     condition: data.weather[0].description,
     temp: Math.round(data.main.temp),
     isStorm,
-    humidity: data.main.humidity,
+    humidity,
+    clouds,
   };
 }
 
@@ -762,12 +774,13 @@ function updateUI() {
     let impactClass, impactText;
     if (w.isStorm) { impactClass = 'impact-storm'; impactText = '⚡ STORM'; }
     else if (w.intensity > 0.65) { impactClass = 'impact-up'; impactText = '+BULL'; }
-    else if (w.intensity < 0.15) { impactClass = 'impact-down'; impactText = 'BEAR'; }
+    else if (w.intensity < 0.25) { impactClass = 'impact-down'; impactText = 'BEAR'; }
     else { impactClass = 'impact-neutral'; impactText = 'NEUTRAL'; }
-    const mmDisplay = w.rain_mm > 0 ? w.rain_mm.toFixed(1) + ' mm/h' : 'trace';
+    const mmDisplay = w.rain_mm > 0 ? w.rain_mm.toFixed(1) + ' mm/h' : 'no rain';
+    const extraInfo = `${w.humidity}% humidity · ${w.clouds || 0}% clouds`;
     return `<div class="feed-row">
       <div class="feed-city">${w.flag} ${w.name}</div>
-      <div class="feed-mm">${mmDisplay}</div>
+      <div class="feed-mm">${mmDisplay}<br><span style="font-size:0.62rem;color:var(--muted)">${extraInfo}</span></div>
       <div class="feed-condition">${w.condition}</div>
       <div class="feed-impact ${impactClass}">${impactText}</div>
     </div>`;
