@@ -721,9 +721,14 @@ function showApiError(msg) {
 }
 
 function computeRainIndex() {
-  if (weatherData.length === 0) return 30;
+  if (weatherData.length === 0) return 50;
   const avg = weatherData.reduce((s, w) => s + w.intensity, 0) / weatherData.length;
-  return Math.round(avg * 100);
+
+  // Normalize to a 35-100 scale so the index always feels alive
+  // Raw 0.0 intensity = index 35 (driest possible day)
+  // Raw 1.0 intensity = index 100 (full storm)
+  const normalized = Math.round(35 + (avg * 65));
+  return Math.min(100, Math.max(35, normalized));
 }
 
 function updateUI() {
@@ -743,8 +748,8 @@ function updateUI() {
   document.getElementById('s-rain-index').textContent = rainIndex;
   const rainyCount = weatherData.filter(w => w.intensity > 0.3).length;
   document.getElementById('s-rainy').textContent = rainyCount + '/' + weatherData.length;
-  const status = rainIndex > 60 ? '▲ Bull signal' : rainIndex > 35 ? '→ Neutral' : '▼ Bear signal';
-  const statusClass = rainIndex > 60 ? 'up' : rainIndex > 35 ? 'neutral' : 'down';
+  const status = rainIndex > 65 ? '▲ Bull signal' : rainIndex > 50 ? '→ Neutral' : '▼ Bear signal';
+  const statusClass = rainIndex > 65 ? 'up' : rainIndex > 50 ? 'neutral' : 'down';
   document.getElementById('s-rain-status').textContent = status;
   document.getElementById('s-rain-status').className = 'stat-change ' + statusClass;
 
@@ -763,8 +768,8 @@ function updateUI() {
 
   // Hero weather chips
   const storms = weatherData.filter(w => w.isStorm);
-  const heavyRain = weatherData.filter(w => w.intensity > 0.6);
-  const dry = weatherData.filter(w => w.intensity < 0.1);
+  const heavyRain = weatherData.filter(w => w.intensity > 0.5);
+  const dry = weatherData.filter(w => w.intensity < 0.2);
   let chipHtml = `<div class="weather-chip"><div class="live-dot"></div><span>Rain Index: <strong>${rainIndex}/100</strong></span></div>`;
   if (storms.length > 0) chipHtml += `<div class="weather-chip storm">⚡ Storm: ${storms[0].name}</div>`;
   if (heavyRain.length > 0) chipHtml += `<div class="weather-chip">🌧 Heavy rain in ${heavyRain.length} ${heavyRain.length===1?'city':'cities'}</div>`;
