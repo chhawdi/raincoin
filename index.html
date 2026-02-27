@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Primary SEO -->
+<title>$RAIN — The Weather-Priced Meme Coin | raincoin.io</title>
+<meta name="description" content="$RAIN is the first cryptocurrency priced by real-world rainfall data. When it rains, you gain. Live oracle powered by global weather stations. Built on Solana.">
+<meta name="keywords" content="RAIN coin, rain crypto, weather coin, meme coin, Solana, weather oracle, rainfall cryptocurrency, raincoin">
+<meta name="author" content="$RAIN Protocol">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://raincoin.io/">
+
+<!-- Open Graph (Facebook, Telegram, Discord previews) -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://raincoin.io/">
+<meta property="og:title" content="$RAIN — Priced by the Storm">
+<meta property="og:description" content="The only coin whose price is governed by real-world rainfall. Not influencers. Not whales. Not Elon. When it rains, you gain.">
+<meta property="og:image" content="https://raincoin.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="$RAIN — Priced by the Storm. Live weather oracle on Solana.">
+<meta property="og:site_name" content="$RAIN Protocol">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter / X Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@raincoin_sol">
+<meta name="twitter:creator" content="@raincoin_sol">
+<meta name="twitter:url" content="https://raincoin.io/">
+<meta name="twitter:title" content="$RAIN — Priced by the Storm">
+<meta name="twitter:description" content="The only coin whose price is governed by real rainfall data. When it rains, you gain. Live oracle. Built on Solana.">
+<meta name="twitter:image" content="https://raincoin.io/og-image.png">
+<meta name="twitter:image:alt" content="$RAIN meme coin — weather oracle">
+
+<!-- Favicon set -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌧</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌧</text></svg>">
+<meta name="theme-color" content="#050810">
+<meta name="msapplication-TileColor" content="#050810">
+
+<!-- Schema.org structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "$RAIN Protocol",
+  "alternateName": "raincoin",
+  "url": "https://raincoin.io",
+  "description": "The first cryptocurrency priced by real-world global rainfall data. Built on Solana.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://raincoin.io/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+<!-- Preconnect for performance -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.openweathermap.org">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #050810;
+    --deep: #090d1a;
+    --panel: #0c1220;
+    --border: rgba(80,160,255,0.15);
+    --cyan: #4fc3f7;
+    --electric: #00e5ff;
+    --rain: #7ab8e8;
+    --muted: #3a5a7a;
+    --text: #c8dff0;
+    --dim: #5a7a96;
+    --green: #00e676;
+    --red: #ff5252;
+    --gold: #ffd740;
+    --orange: #ff9800;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--void); color: var(--text); font-family: 'Chakra Petch', sans-serif; overflow-x: hidden; }
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px);
+  }
+  #rain-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.45; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 3rem; height: 60px;
+    background: rgba(5,8,16,0.9); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-size: 1.3rem; font-weight: 700; letter-spacing: 4px; color: var(--electric); text-shadow: 0 0 20px rgba(0,229,255,0.5); }
+  .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+  .nav-links a { color: var(--dim); text-decoration: none; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--electric); }
+  .nav-price { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--green); border: 1px solid rgba(0,230,118,0.3); padding: 0.3rem 0.9rem; border-radius: 4px; background: rgba(0,230,118,0.05); transition: color 0.3s, border-color 0.3s; }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; z-index: 10;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 6rem 2rem 4rem; overflow: hidden;
+  }
+  .hero-tag {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--cyan); border: 1px solid var(--border);
+    padding: 0.4rem 1.2rem; border-radius: 2px; margin-bottom: 2.5rem;
+    animation: fadeUp 1s ease both;
+  }
+  h1 { font-size: clamp(5rem, 16vw, 12rem); font-weight: 700; line-height: 0.9; letter-spacing: -3px; color: #fff; margin-bottom: 0.5rem; animation: fadeUp 1s 0.15s ease both; }
+  h1 .dollar { color: var(--electric); text-shadow: 0 0 60px rgba(0,229,255,0.6), 0 0 120px rgba(0,229,255,0.2); }
+  .hero-sub { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 300; letter-spacing: 6px; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; animation: fadeUp 1s 0.3s ease both; }
+
+  /* Live weather badge in hero */
+  .hero-weather-badge {
+    display: flex; align-items: center; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 2.5rem; animation: fadeUp 1s 0.45s ease both;
+  }
+  .weather-chip {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: rgba(0,229,255,0.06); border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 100px; padding: 0.4rem 1rem;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--cyan);
+  }
+  .weather-chip .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 1.5s ease-in-out infinite; }
+  .weather-chip.storm { border-color: rgba(255,215,64,0.4); color: var(--gold); background: rgba(255,215,64,0.06); }
+  .weather-chip.dry { border-color: rgba(255,82,82,0.3); color: var(--red); background: rgba(255,82,82,0.05); }
+
+  .hero-desc { font-family: 'DM Mono', monospace; font-size: 0.95rem; line-height: 1.9; max-width: 520px; color: var(--dim); margin-bottom: 3rem; animation: fadeUp 1s 0.5s ease both; }
+  .hero-desc em { color: var(--cyan); font-style: normal; }
+  .cta-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeUp 1s 0.6s ease both; }
+  .btn-primary { background: var(--electric); color: var(--void); font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; padding: 1rem 2.5rem; border: none; border-radius: 3px; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 30px rgba(0,229,255,0.25); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(0,229,255,0.5); }
+  .btn-ghost { background: transparent; color: var(--cyan); font-family: 'Chakra Petch', sans-serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; padding: 1rem 2.5rem; border: 1px solid rgba(79,195,247,0.4); border-radius: 3px; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { background: rgba(79,195,247,0.08); border-color: var(--cyan); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    position: relative; z-index: 10;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    background: rgba(9,13,26,0.95);
+  }
+  .stat-item { padding: 1.5rem 1.5rem; border-right: 1px solid var(--border); }
+  .stat-item:last-child { border-right: none; }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+  .stat-value { font-family: 'DM Mono', monospace; font-size: 1.2rem; font-weight: 500; color: #fff; }
+  .stat-change { font-family: 'DM Mono', monospace; font-size: 0.7rem; margin-top: 0.2rem; }
+  .up { color: var(--green); } .down { color: var(--red); } .neutral { color: var(--cyan); }
+
+  /* ── API KEY SETUP BANNER ── */
+  .api-banner {
+    position: relative; z-index: 10;
+    background: rgba(255,152,0,0.08); border: 1px solid rgba(255,152,0,0.3);
+    padding: 1.2rem 2rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+  }
+  .api-banner p { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--orange); flex: 1; min-width: 200px; }
+  .api-banner p strong { color: var(--gold); }
+  .api-input-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .api-input {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,152,0,0.4);
+    color: var(--text); padding: 0.5rem 1rem; border-radius: 3px; width: 280px;
+    outline: none;
+  }
+  .api-input:focus { border-color: var(--orange); }
+  .api-input::placeholder { color: var(--muted); }
+  .api-set-btn {
+    font-family: 'Chakra Petch', sans-serif; font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; background: var(--orange); color: #000;
+    border: none; padding: 0.5rem 1.2rem; border-radius: 3px; cursor: pointer; transition: opacity 0.2s;
+  }
+  .api-set-btn:hover { opacity: 0.85; }
+  .api-success { display: none; font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--green); }
+
+  /* ── MAP SECTION ── */
+  .map-section { position: relative; z-index: 10; padding: 6rem 3rem; max-width: 1200px; margin: 0 auto; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+  .section-title { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 700; letter-spacing: -1px; color: #fff; margin-bottom: 1rem; }
+  .section-title span { color: var(--electric); }
+  .section-body { font-family: 'DM Mono', monospace; font-size: 0.875rem; line-height: 1.9; color: var(--dim); max-width: 560px; margin-bottom: 3rem; }
+  .map-container { position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; padding: 1.5rem; }
+  .map-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+  .map-title { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+  .live-dot { display: flex; align-items: center; gap: 0.5rem; font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 2px; color: var(--green); }
+  .live-dot::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: blink 1.5s ease-in-out infinite; }
+  #world-canvas { width: 100%; height: auto; display: block; border-radius: 4px; }
+  .map-legend { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .rain-index-bar { display: flex; align-items: center; gap: 1rem; margin-top: 1.2rem; padding: 0.8rem 1rem; background: rgba(0,229,255,0.04); border: 1px solid rgba(0,229,255,0.1); border-radius: 4px; }
+  .rain-index-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .rain-index-track { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+  .rain-index-fill { height: 100%; border-radius: 3px; transition: width 2s ease, background 2s ease; }
+  .rain-index-value { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 500; color: #fff; min-width: 50px; text-align: right; }
+
+  /* ── ORACLE FEED ── */
+  .oracle-section { position: relative; z-index: 10; padding: 6rem 3rem; background: linear-gradient(180deg, transparent, rgba(0,229,255,0.02), transparent); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .oracle-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; }
+  .oracle-feed { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .feed-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .feed-title { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+  .feed-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 1rem; padding: 0.9rem 1.5rem; border-bottom: 1px solid rgba(80,160,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.78rem; align-items: center; transition: background 0.2s; }
+  .feed-row:hover { background: rgba(79,195,247,0.04); }
+  .feed-row:last-child { border-bottom: none; }
+  .feed-city { color: var(--text); }
+  .feed-mm { color: var(--muted); font-size: 0.72rem; }
+  .feed-condition { color: var(--dim); font-size: 0.65rem; }
+  .feed-impact { font-size: 0.6rem; letter-spacing: 1px; padding: 0.2rem 0.5rem; border-radius: 2px; }
+  .impact-up { background: rgba(0,230,118,0.1); color: var(--green); }
+  .impact-down { background: rgba(255,82,82,0.1); color: var(--red); }
+  .impact-neutral { background: rgba(79,195,247,0.08); color: var(--cyan); }
+  .impact-storm { background: rgba(255,215,64,0.12); color: var(--gold); }
+
+  /* ── TOKENOMICS ── */
+  .token-section { position: relative; z-index: 10; padding: 6rem 3rem; max-width: 1200px; margin: 0 auto; }
+  .token-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 3rem; }
+  .token-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 2rem; position: relative; overflow: hidden; }
+  .token-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 6px 6px; }
+  .tc-1::after { background: var(--electric); }
+  .tc-2::after { background: var(--cyan); }
+  .tc-3::after { background: var(--green); }
+  .tc-4::after { background: var(--gold); }
+  .token-pct { font-size: 2.8rem; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 0.5rem; }
+  .token-name { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+  .token-desc { font-family: 'DM Mono', monospace; font-size: 0.75rem; line-height: 1.7; color: var(--dim); }
+
+  /* ── FORECAST ── */
+  .forecast-section { position: relative; z-index: 10; padding: 6rem 3rem; max-width: 900px; margin: 0 auto; }
+  .forecast-item { display: grid; grid-template-columns: 120px 1fr; gap: 2rem; margin-bottom: 3rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); align-items: start; }
+  .forecast-item:last-child { border-bottom: none; }
+  .forecast-phase { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--electric); line-height: 1.8; }
+  .forecast-status { display: inline-block; font-size: 0.6rem; letter-spacing: 1px; padding: 0.2rem 0.5rem; border-radius: 2px; margin-top: 0.5rem; }
+  .status-done { background: rgba(0,230,118,0.12); color: var(--green); }
+  .status-active { background: rgba(0,229,255,0.1); color: var(--electric); }
+  .status-pending { background: rgba(90,122,150,0.2); color: var(--muted); }
+  .forecast-content h3 { font-size: 1.2rem; font-weight: 600; color: #fff; margin-bottom: 0.75rem; }
+  .forecast-content p { font-family: 'DM Mono', monospace; font-size: 0.8rem; line-height: 1.9; color: var(--dim); }
+
+  /* ── COMMUNITY ── */
+  .community-section { position: relative; z-index: 10; text-align: center; padding: 6rem 3rem; border-top: 1px solid var(--border); }
+  .community-section p { font-family: 'DM Mono', monospace; font-size: 0.875rem; line-height: 1.9; color: var(--dim); max-width: 500px; margin: 0 auto 2.5rem; }
+  .social-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .social-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1.5rem; border: 1px solid var(--border); border-radius: 4px; color: var(--text); text-decoration: none; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; transition: all 0.2s; background: var(--panel); }
+  .social-link:hover { border-color: var(--electric); color: var(--electric); background: rgba(0,229,255,0.05); }
+
+  /* ── FOOTER ── */
+  footer { position: relative; z-index: 10; border-top: 1px solid var(--border); padding: 2.5rem 3rem; display: flex; justify-content: space-between; align-items: center; background: var(--deep); flex-wrap: wrap; gap: 1rem; }
+  .footer-logo { font-size: 1rem; font-weight: 700; letter-spacing: 4px; color: var(--electric); opacity: 0.6; }
+  .footer-text { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); text-align: center; }
+
+  .scroll-ind { position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); animation: fadeUp 1s 1s ease both, float 3s 2s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
+  .scroll-line { width: 1px; height: 40px; background: linear-gradient(180deg, var(--cyan), transparent); }
+
+  /* ── HOW GRID ── */
+  .how-section { position: relative; z-index: 10; padding: 6rem 3rem; max-width: 1200px; margin: 0 auto; }
+  .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 3rem; }
+  .how-card { background: var(--panel); padding: 2.5rem; transition: background 0.3s; position: relative; overflow: hidden; }
+  .how-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--electric), transparent); opacity: 0; transition: opacity 0.3s; }
+  .how-card:hover { background: #0e1828; }
+  .how-card:hover::before { opacity: 1; }
+  .how-number { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 3px; color: var(--muted); margin-bottom: 1.5rem; }
+  .how-icon { font-size: 2.2rem; margin-bottom: 1rem; display: block; }
+  .how-card h3 { font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 0.75rem; letter-spacing: 1px; }
+  .how-card p { font-family: 'DM Mono', monospace; font-size: 0.8rem; line-height: 1.8; color: var(--dim); }
+
+  @media (max-width: 768px) { .oracle-inner { grid-template-columns: 1fr; gap: 3rem; } }
+  @media (max-width: 600px) { nav { padding: 0 1.5rem; } .nav-links { display: none; } .forecast-item { grid-template-columns: 1fr; gap: 0.5rem; } }
+
+  /* Loading spinner for API data */
+  .loading-row { padding: 1.5rem; text-align: center; font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); }
+  .api-error { padding: 1rem 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--orange); border-bottom: 1px solid rgba(255,152,0,0.1); }
+</style>
+</head>
+<body>
+
+<canvas id="rain-canvas"></canvas>
+
+<nav>
+  <div class="nav-logo">$RAIN</div>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#oracle">Oracle</a>
+    <a href="#tokenomics">Tokenomics</a>
+    <a href="#forecast">Forecast</a>
+    <a href="#community">Community</a>
+  </div>
+  <div class="nav-price" id="nav-price">$0.004218 ▲ +2.3%</div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-tag" id="hero-tag">⛈ Price governed by global rainfall data</div>
+  <h1><span class="dollar">$</span>RAIN</h1>
+  <div class="hero-sub">Priced by the Storm</div>
+
+  <!-- Live weather chips -->
+  <div class="hero-weather-badge" id="hero-weather">
+    <div class="weather-chip"><div class="live-dot"></div><span id="chip-global">Loading weather data...</span></div>
+  </div>
+
+  <p class="hero-desc">
+    The only coin whose price is set by <em>actual weather</em>.<br>
+    Not influencers. Not whales. Not Elon.<br>
+    When it rains, you gain.
+  </p>
+  <div class="cta-row">
+    <button class="btn-primary">Buy $RAIN</button>
+    <button class="btn-ghost" onclick="document.getElementById('oracle').scrollIntoView({behavior:'smooth'})">View Oracle →</button>
+  </div>
+  <div class="scroll-ind"><div class="scroll-line"></div>Scroll</div>
+</section>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-label">Price</div><div class="stat-value" id="s-price">$0.004218</div><div class="stat-change up" id="s-change">▲ +2.31%</div></div>
+  <div class="stat-item"><div class="stat-label">Market Cap</div><div class="stat-value">$42.1M</div><div class="stat-change up">▲ +1.8%</div></div>
+  <div class="stat-item"><div class="stat-label">Rain Index</div><div class="stat-value" id="s-rain-index">—</div><div class="stat-change neutral" id="s-rain-status">Fetching...</div></div>
+  <div class="stat-item"><div class="stat-label">Rainy Cities</div><div class="stat-value" id="s-rainy">—</div><div class="stat-change neutral">↻ Live</div></div>
+  <div class="stat-item"><div class="stat-label">Holders</div><div class="stat-value">87,440</div><div class="stat-change up">▲ +1,200 today</div></div>
+  <div class="stat-item"><div class="stat-label">24h Volume</div><div class="stat-value">$8.3M</div><div class="stat-change up">▲ +44%</div></div>
+</div>
+
+<!-- API Key Setup Banner -->
+<div class="api-banner" id="api-banner" style="display:none">
+  <p>⚡ <strong>Connect live weather data:</strong> Enter your free OpenWeatherMap API key to power the oracle. Get one free at <strong>openweathermap.org/api</strong> (takes 2 min).</p>
+  <div class="api-input-row">
+    <input class="api-input" id="api-key-input" type="text" placeholder="Paste your OWM API key here..." />
+    <button class="api-set-btn" onclick="setApiKey()">Connect</button>
+  </div>
+  <span class="api-success" id="api-success">✓ Live data connected!</span>
+</div>
+
+<!-- World Map Section -->
+<section class="map-section" id="oracle">
+  <div class="section-label">// global rainfall oracle</div>
+  <h2 class="section-title">The <span>Weather</span><br>Is The Market</h2>
+  <p class="section-body">Every 15 minutes, the $RAIN oracle ingests precipitation data from weather stations worldwide. High rainfall = buying pressure. Drought = sell signal. You're not trading against humans — you're trading against the sky.</p>
+  <div class="map-container">
+    <div class="map-header">
+      <div class="map-title" id="map-title">// live global precipitation — 15 min oracle cycle</div>
+      <div class="live-dot">LIVE</div>
+    </div>
+    <canvas id="world-canvas"></canvas>
+    <div class="rain-index-bar">
+      <div class="rain-index-label">Rain Index</div>
+      <div class="rain-index-track"><div class="rain-index-fill" id="rain-index-fill" style="width:0%;background:var(--cyan)"></div></div>
+      <div class="rain-index-value" id="rain-index-val">—</div>
+    </div>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#00e5ff"></div> Heavy rain (bull)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4fc3f7;opacity:0.7"></div> Moderate rain</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1a4a6a"></div> Dry (bear)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffd740"></div> Storm event (+5%)</div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-section" id="how">
+  <div class="section-label">// mechanism</div>
+  <h2 class="section-title">How <span>$RAIN</span> Works</h2>
+  <div class="how-grid">
+    <div class="how-card"><div class="how-number">01 —</div><span class="how-icon">🌍</span><h3>Global Data Ingestion</h3><p>OpenWeatherMap & NOAA stations feed real-time precipitation data into the $RAIN oracle every 15 minutes across 12,000+ stations worldwide.</p></div>
+    <div class="how-card"><div class="how-number">02 —</div><span class="how-icon">⛓</span><h3>On-Chain Oracle</h3><p>A Chainlink-powered oracle aggregates global mm/h rainfall into a single Rain Index (0–100). Published on-chain and governs bonding curve parameters.</p></div>
+    <div class="how-card"><div class="how-number">03 —</div><span class="how-icon">📈</span><h3>Weather → Price</h3><p>High global rainfall = expanded liquidity pool = upward price pressure. Drought conditions compress the pool. Hurricanes trigger 5% storm bonus events.</p></div>
+    <div class="how-card"><div class="how-number">04 —</div><span class="how-icon">🌦</span><h3>Seasonal Cycles</h3><p>Monsoon season. El Niño years. Winter storms. For the first time in crypto, macroeconomic seasons have a physical counterpart. Long-term holders study climate charts.</p></div>
+  </div>
+</section>
+
+<!-- Oracle Feed -->
+<section class="oracle-section">
+  <div class="oracle-inner">
+    <div>
+      <div class="section-label">// real-time feed</div>
+      <h2 class="section-title">Live Rainfall<br><span>Oracle Feed</span></h2>
+      <p class="section-body" style="margin-bottom:0">Every city in this feed is influencing $RAIN's price right now. A typhoon over Manila is more bullish than any tweet. A drought in São Paulo is a red candle nobody can manipulate.</p>
+    </div>
+    <div class="oracle-feed">
+      <div class="feed-header">
+        <div class="feed-title" id="feed-title">// precipitation oracle</div>
+        <div class="live-dot">LIVE</div>
+      </div>
+      <div id="oracle-feed-rows"><div class="loading-row">Connecting to weather oracle...</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Tokenomics -->
+<section class="token-section" id="tokenomics">
+  <div class="section-label">// distribution</div>
+  <h2 class="section-title"><span>Token</span>omics</h2>
+  <p class="section-body">1,000,000,000 $RAIN tokens. No pre-sale. No VC allocation. Supply distributed like rainfall — to the community.</p>
+  <div class="token-grid">
+    <div class="token-card tc-1"><div class="token-pct">50%</div><div class="token-name">Liquidity Pool</div><div class="token-desc">LP burned on launch. Nobody controls it. Not even the weather.</div></div>
+    <div class="token-card tc-2"><div class="token-pct">25%</div><div class="token-name">Community</div><div class="token-desc">Airdropped to early holders. Reward for those who were there before the storm.</div></div>
+    <div class="token-card tc-3"><div class="token-pct">15%</div><div class="token-name">Oracle Fund</div><div class="token-desc">Sustains Chainlink oracle subscriptions and weather API costs. The engine that makes $RAIN real.</div></div>
+    <div class="token-card tc-4"><div class="token-pct">10%</div><div class="token-name">Dev</div><div class="token-desc">12-month cliff, 24-month vesting. Locked on-chain. We eat when you eat.</div></div>
+  </div>
+</section>
+
+<!-- Forecast -->
+<section class="forecast-section" id="forecast">
+  <div class="section-label">// roadmap</div>
+  <h2 class="section-title" style="margin-bottom:3rem">The <span>Forecast</span></h2>
+  <div class="forecast-item"><div class="forecast-phase">Q1 2026<br><span class="forecast-status status-done">✓ Deployed</span></div><div class="forecast-content"><h3>Genesis Storm</h3><p>Token launch. Oracle v1 live with 500 station feeds. Website. Telegram. The first drops have fallen.</p></div></div>
+  <div class="forecast-item"><div class="forecast-phase">Q2 2026<br><span class="forecast-status status-active">↻ Active</span></div><div class="forecast-content"><h3>Oracle Expansion</h3><p>Scale to 12,000 global stations. Launch storm bonus events for Category 3+ hurricanes. CEX listing outreach. Partner with two meteorology platforms.</p></div></div>
+  <div class="forecast-item"><div class="forecast-phase">Q3 2026<br><span class="forecast-status status-pending">Pending</span></div><div class="forecast-content"><h3>$RAIN DAO</h3><p>Governance goes live. Token holders vote on oracle parameters — which regions are weighted, how storm bonuses trigger, and allocation of the Oracle Fund.</p></div></div>
+  <div class="forecast-item"><div class="forecast-phase">Q4 2026<br><span class="forecast-status status-pending">Pending</span></div><div class="forecast-content"><h3>Climate Derivatives</h3><p>Long monsoon season. Short drought. The world's first weather-native on-chain derivatives market built on $RAIN's oracle infrastructure.</p></div></div>
+</section>
+
+<!-- Community -->
+<section class="community-section" id="community">
+  <div class="section-label">// join the storm</div>
+  <h2 class="section-title">87,440 <span>Holders</span><br>Watching the Sky</h2>
+  <p>Farmers. Meteorologists. Degens. Climate scientists. All united by one truth: you can't fake rain.</p>
+  <div class="social-row">
+    <a href="#" class="social-link">🐦 Twitter / X</a>
+    <a href="#" class="social-link">💬 Telegram</a>
+    <a href="#" class="social-link">🎮 Discord</a>
+    <a href="#" class="social-link">📊 Dexscreener</a>
+    <a href="#" class="social-link">📄 Whitepaper</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">$RAIN</div>
+  <div class="footer-text">Not financial advice. Weather data may be delayed. Hurricanes may cause significant portfolio events.<br>© 2026 $RAIN Protocol — Governed by the atmosphere.</div>
+  <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted)">RAIN-SOL-2026</div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG — EDIT THIS TO ADD YOUR API KEY
+// ══════════════════════════════════════════════
+// Get a free key at: https://openweathermap.org/api
+// Then either:
+//   1. Replace the string below with your key, OR
+//   2. Enter it in the banner at the top of the page
+const OWM_KEY = '529bb1102a3ab43fdd3505a58210df9d';
+
+// Cities to monitor (name, lat, lon)
+const CITIES = [
+  { name: 'Manila, PH',     lat: 14.5995, lon: 120.9842, flag: '🇵🇭' },
+  { name: 'Mumbai, IN',     lat: 19.0760, lon: 72.8777,  flag: '🇮🇳' },
+  { name: 'São Paulo, BR',  lat: -23.5505, lon: -46.6333, flag: '🇧🇷' },
+  { name: 'London, UK',     lat: 51.5074, lon: -0.1278,  flag: '🇬🇧' },
+  { name: 'Nairobi, KE',   lat: -1.2921, lon: 36.8219,  flag: '🇰🇪' },
+  { name: 'Jakarta, ID',   lat: -6.2088, lon: 106.8456,  flag: '🇮🇩' },
+  { name: 'New York, US',  lat: 40.7128, lon: -74.0060,  flag: '🇺🇸' },
+  { name: 'Sydney, AU',    lat: -33.8688, lon: 151.2093, flag: '🇦🇺' },
+  { name: 'Shanghai, CN',  lat: 31.2304, lon: 121.4737,  flag: '🇨🇳' },
+  { name: 'Lagos, NG',     lat: 6.5244,  lon: 3.3792,    flag: '🇳🇬' },
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let apiKey = OWM_KEY;
+let weatherData = [];
+let rainIndex = 0;
+let isUsingLiveData = false;
+let lastFetch = 0;
+
+// ══════════════════════════════════════════════
+// RAIN CANVAS
+// ══════════════════════════════════════════════
+const rainCanvas = document.getElementById('rain-canvas');
+const rc = rainCanvas.getContext('2d');
+
+function resizeRain() { rainCanvas.width = window.innerWidth; rainCanvas.height = window.innerHeight; }
+resizeRain();
+window.addEventListener('resize', resizeRain);
+
+const drops = Array.from({length: 150}, () => ({
+  x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+  len: 35 + Math.random() * 65, speed: 7 + Math.random() * 12,
+  opacity: 0.25 + Math.random() * 0.55, width: 1.5 + Math.random() * 2.5
+}));
+
+// Rain intensity driven by rain index
+let rainIntensity = 0.3;
+
+function drawRain() {
+  rc.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+  const targetOpacity = 0.15 + rainIntensity * 0.45;
+  rainCanvas.style.opacity = targetOpacity;
+  drops.forEach(d => {
+    rc.beginPath();
+    rc.moveTo(d.x, d.y);
+    rc.lineTo(d.x - 1, d.y + d.len * (0.5 + rainIntensity));
+    rc.strokeStyle = `rgba(100,180,255,${d.opacity})`;
+    rc.lineWidth = d.width;
+    rc.stroke();
+    d.y += d.speed * (0.5 + rainIntensity);
+    d.x -= 0.5;
+    if (d.y > window.innerHeight + 30) { d.y = -30; d.x = Math.random() * window.innerWidth; }
+  });
+  requestAnimationFrame(drawRain);
+}
+drawRain();
+
+// ══════════════════════════════════════════════
+// WORLD MAP CANVAS
+// ══════════════════════════════════════════════
+const wc = document.getElementById('world-canvas');
+const ctx = wc.getContext('2d');
+const W = 900, H = 420;
+wc.width = W; wc.height = H;
+
+// Simplified region definitions [name, cx, cy, rx, ry]
+const regions = [
+  { name: 'N. America', cx: 175, cy: 150, rx: 90, ry: 65, cities: ['New York, US'] },
+  { name: 'S. America', cx: 220, cy: 285, rx: 55, ry: 75, cities: ['São Paulo, BR'] },
+  { name: 'Europe',     cx: 432, cy: 120, rx: 45, ry: 38, cities: ['London, UK'] },
+  { name: 'Africa',     cx: 450, cy: 248, rx: 52, ry: 78, cities: ['Nairobi, KE', 'Lagos, NG'] },
+  { name: 'S. Asia',    cx: 580, cy: 195, rx: 55, ry: 45, cities: ['Mumbai, IN'] },
+  { name: 'E. Asia',    cx: 680, cy: 155, rx: 65, ry: 55, cities: ['Shanghai, CN'] },
+  { name: 'SE Asia',    cx: 680, cy: 250, rx: 45, ry: 35, cities: ['Manila, PH', 'Jakarta, ID'] },
+  { name: 'Australia',  cx: 710, cy: 320, rx: 58, ry: 38, cities: ['Sydney, AU'] },
+];
+
+// Get average rain for a region based on its cities
+function getRegionRain(region) {
+  const relevant = weatherData.filter(w => region.cities.includes(w.name));
+  if (relevant.length === 0) return 0.3 + Math.random() * 0.2; // fallback
+  return relevant.reduce((s, w) => s + (w.intensity || 0), 0) / relevant.length;
+}
+
+function drawWorld() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Ocean
+  const ocean = ctx.createLinearGradient(0, 0, 0, H);
+  ocean.addColorStop(0, '#060e1a');
+  ocean.addColorStop(1, '#050810');
+  ctx.fillStyle = ocean;
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(79,195,247,0.05)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  regions.forEach(r => {
+    const intensity = getRegionRain(r);
+    let baseColor, glowColor;
+    if (intensity > 0.75) {
+      baseColor = `rgba(0,229,255,${0.3 + intensity*0.4})`;
+      glowColor = `rgba(0,229,255,${intensity*0.6})`;
+    } else if (intensity > 0.4) {
+      baseColor = `rgba(79,195,247,${0.2 + intensity*0.3})`;
+      glowColor = `rgba(79,195,247,${intensity*0.4})`;
+    } else {
+      baseColor = `rgba(20,50,80,${0.5 + (1-intensity)*0.3})`;
+      glowColor = 'transparent';
+    }
+
+    if (intensity > 0.4) {
+      const grd = ctx.createRadialGradient(r.cx, r.cy, 0, r.cx, r.cy, Math.max(r.rx, r.ry) * 1.5);
+      grd.addColorStop(0, glowColor);
+      grd.addColorStop(1, 'transparent');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.ellipse(r.cx, r.cy, r.rx*1.5, r.ry*1.5, 0, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = baseColor;
+    ctx.strokeStyle = intensity > 0.5 ? `rgba(0,229,255,${intensity*0.4})` : 'rgba(79,195,247,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(r.cx, r.cy, r.rx, r.ry, 0, 0, Math.PI*2);
+    ctx.fill(); ctx.stroke();
+
+    if (intensity > 0.85) { ctx.font = '14px serif'; ctx.textAlign = 'center'; ctx.fillText('⚡', r.cx, r.cy - r.ry - 8); }
+
+    if (intensity > 0.5) {
+      for (let i = 0; i < 3; i++) {
+        const px = r.cx + (Math.random()-0.5) * r.rx * 1.5;
+        const py = r.cy + (Math.random()-0.5) * r.ry * 1.5;
+        ctx.strokeStyle = `rgba(130,200,255,${intensity*0.6})`;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px-1, py+5); ctx.stroke();
+      }
+    }
+
+    ctx.fillStyle = intensity > 0.5 ? 'rgba(200,230,255,0.9)' : 'rgba(90,120,150,0.7)';
+    ctx.font = '9px "DM Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(r.name, r.cx, r.cy + r.ry + 14);
+  });
+
+  // Equator
+  ctx.strokeStyle = 'rgba(79,195,247,0.12)';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([5,8]);
+  ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(79,195,247,0.3)';
+  ctx.font = '8px "DM Mono", monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('EQUATOR', 4, H/2 - 4);
+}
+
+function animateWorld() { drawWorld(); requestAnimationFrame(animateWorld); }
+animateWorld();
+
+// ══════════════════════════════════════════════
+// WEATHER API
+// ══════════════════════════════════════════════
+function isValidKey(key) { return key && key.length > 10 && key !== 'YOUR_API_KEY_HERE'; }
+
+async function fetchCityWeather(city, key) {
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${city.lat}&lon=${city.lon}&appid=${key}&units=metric`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  const rain1h = data.rain ? (data.rain['1h'] || data.rain['3h'] / 3 || 0) : 0;
+  const weatherId = data.weather[0].id;
+  const isStorm = weatherId < 300;
+  const intensity = Math.min(1, rain1h / 15); // 15mm/h = max intensity
+  return {
+    name: city.name,
+    flag: city.flag,
+    rain_mm: rain1h,
+    intensity,
+    condition: data.weather[0].description,
+    temp: Math.round(data.main.temp),
+    isStorm,
+    humidity: data.main.humidity,
+  };
+}
+
+async function fetchAllWeather() {
+  if (!isValidKey(apiKey)) {
+    useSimulatedData();
+    return;
+  }
+  const now = Date.now();
+  if (now - lastFetch < 60000) return; // Don't fetch more than once per minute
+  lastFetch = now;
+
+  document.getElementById('feed-title').textContent = '// fetching live data...';
+
+  try {
+    const results = await Promise.allSettled(CITIES.map(c => fetchCityWeather(c, apiKey)));
+    const live = results
+      .filter(r => r.status === 'fulfilled')
+      .map(r => r.value);
+
+    if (live.length === 0) throw new Error('No data returned');
+
+    weatherData = live;
+    isUsingLiveData = true;
+    document.getElementById('api-banner').style.display = 'none';
+    document.getElementById('feed-title').textContent = '// live data — openweathermap.org';
+    document.getElementById('map-title').textContent = `// live precipitation — updated ${new Date().toLocaleTimeString()}`;
+    updateUI();
+  } catch (err) {
+    console.warn('OWM fetch failed:', err);
+    if (err.message.includes('401')) {
+      document.getElementById('feed-title').textContent = '// invalid API key — check your key';
+      showApiError('Invalid API key. Please check and re-enter it.');
+    } else {
+      useSimulatedData();
+    }
+  }
+}
+
+function useSimulatedData() {
+  weatherData = CITIES.map(c => ({
+    name: c.name,
+    flag: c.flag,
+    rain_mm: Math.random() * 12,
+    intensity: Math.random(),
+    condition: ['clear sky', 'light rain', 'moderate rain', 'heavy rain', 'thunderstorm'][Math.floor(Math.random()*5)],
+    temp: 15 + Math.floor(Math.random()*20),
+    isStorm: Math.random() > 0.85,
+    humidity: 40 + Math.floor(Math.random()*50),
+  }));
+  document.getElementById('feed-title').textContent = '// simulated data — add API key for live feed';
+  updateUI();
+}
+
+function showApiError(msg) {
+  const existing = document.querySelector('.api-error');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = 'api-error';
+  el.textContent = '⚠ ' + msg;
+  document.getElementById('oracle-feed-rows').prepend(el);
+}
+
+function computeRainIndex() {
+  if (weatherData.length === 0) return 30;
+  const avg = weatherData.reduce((s, w) => s + w.intensity, 0) / weatherData.length;
+  return Math.round(avg * 100);
+}
+
+function updateUI() {
+  rainIndex = computeRainIndex();
+  rainIntensity = rainIndex / 100;
+
+  // Rain index bar
+  const fill = document.getElementById('rain-index-fill');
+  const val = document.getElementById('rain-index-val');
+  fill.style.width = rainIndex + '%';
+  if (rainIndex > 65) { fill.style.background = 'var(--electric)'; val.style.color = 'var(--electric)'; }
+  else if (rainIndex > 35) { fill.style.background = 'var(--cyan)'; val.style.color = 'var(--cyan)'; }
+  else { fill.style.background = 'var(--red)'; val.style.color = 'var(--red)'; }
+  val.textContent = rainIndex + ' / 100';
+
+  // Stats
+  document.getElementById('s-rain-index').textContent = rainIndex;
+  const rainyCount = weatherData.filter(w => w.intensity > 0.3).length;
+  document.getElementById('s-rainy').textContent = rainyCount + '/' + weatherData.length;
+  const status = rainIndex > 60 ? '▲ Bull signal' : rainIndex > 35 ? '→ Neutral' : '▼ Bear signal';
+  const statusClass = rainIndex > 60 ? 'up' : rainIndex > 35 ? 'neutral' : 'down';
+  document.getElementById('s-rain-status').textContent = status;
+  document.getElementById('s-rain-status').className = 'stat-change ' + statusClass;
+
+  // Price (simulated movement based on rain index)
+  const basePrice = 0.004218;
+  const multiplier = 0.7 + (rainIndex / 100) * 0.7;
+  const noise = 0.97 + Math.random() * 0.06;
+  const price = (basePrice * multiplier * noise).toFixed(6);
+  const change = ((multiplier - 1) * 100 + (Math.random()-0.5) * 3).toFixed(2);
+  const up = parseFloat(change) > 0;
+  document.getElementById('s-price').textContent = '$' + price;
+  document.getElementById('s-change').textContent = (up ? '▲ +' : '▼ ') + change + '%';
+  document.getElementById('s-change').className = 'stat-change ' + (up ? 'up' : 'down');
+  document.getElementById('nav-price').textContent = '$' + price + ' ' + (up ? '▲ +' : '▼ ') + change + '%';
+  document.getElementById('nav-price').style.color = up ? 'var(--green)' : 'var(--red)';
+
+  // Hero weather chips
+  const storms = weatherData.filter(w => w.isStorm);
+  const heavyRain = weatherData.filter(w => w.intensity > 0.6);
+  const dry = weatherData.filter(w => w.intensity < 0.1);
+  let chipHtml = `<div class="weather-chip"><div class="live-dot"></div><span>Rain Index: <strong>${rainIndex}/100</strong></span></div>`;
+  if (storms.length > 0) chipHtml += `<div class="weather-chip storm">⚡ Storm: ${storms[0].name}</div>`;
+  if (heavyRain.length > 0) chipHtml += `<div class="weather-chip">🌧 Heavy rain in ${heavyRain.length} ${heavyRain.length===1?'city':'cities'}</div>`;
+  if (dry.length > 2) chipHtml += `<div class="weather-chip dry">☀ Drought: ${dry.length} dry regions</div>`;
+  document.getElementById('hero-weather').innerHTML = chipHtml;
+
+  // Oracle feed
+  const rows = [...weatherData].sort((a, b) => b.intensity - a.intensity).map(w => {
+    let impactClass, impactText;
+    if (w.isStorm) { impactClass = 'impact-storm'; impactText = '⚡ STORM'; }
+    else if (w.intensity > 0.65) { impactClass = 'impact-up'; impactText = '+BULL'; }
+    else if (w.intensity < 0.15) { impactClass = 'impact-down'; impactText = 'BEAR'; }
+    else { impactClass = 'impact-neutral'; impactText = 'NEUTRAL'; }
+    const mmDisplay = w.rain_mm > 0 ? w.rain_mm.toFixed(1) + ' mm/h' : 'trace';
+    return `<div class="feed-row">
+      <div class="feed-city">${w.flag} ${w.name}</div>
+      <div class="feed-mm">${mmDisplay}</div>
+      <div class="feed-condition">${w.condition}</div>
+      <div class="feed-impact ${impactClass}">${impactText}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('oracle-feed-rows').innerHTML = rows;
+}
+
+// ══════════════════════════════════════════════
+// API KEY BANNER
+// ══════════════════════════════════════════════
+function setApiKey() {
+  const input = document.getElementById('api-key-input').value.trim();
+  if (!input || input.length < 10) { alert('Please enter a valid API key'); return; }
+  apiKey = input;
+  localStorage.setItem('rain_owm_key', input);
+  document.getElementById('api-success').style.display = 'inline';
+  lastFetch = 0; // Force re-fetch
+  fetchAllWeather();
+}
+
+// Check localStorage for saved key
+const savedKey = localStorage.getItem('rain_owm_key');
+if (savedKey) {
+  apiKey = savedKey;
+  document.getElementById('api-key-input').value = savedKey;
+}
+
+// Hide banner if key already set
+if (isValidKey(apiKey)) document.getElementById('api-banner').style.display = 'none';
+
+// ══════════════════════════════════════════════
+// INIT & REFRESH LOOP
+// ══════════════════════════════════════════════
+// Initial load
+fetchAllWeather();
+
+// Refresh every 15 minutes (matches oracle cycle)
+setInterval(() => { lastFetch = 0; fetchAllWeather(); }, 15 * 60 * 1000);
+
+// Simulate small price movements between fetches
+setInterval(() => {
+  if (weatherData.length > 0) {
+    weatherData = weatherData.map(w => ({
+      ...w,
+      intensity: Math.max(0, Math.min(1, w.intensity + (Math.random()-0.5)*0.05))
+    }));
+    updateUI();
+  }
+}, 5000);
+
+// Fade in scroll elements
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.style.opacity = '1'; e.target.style.transform = 'translateY(0)'; }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.how-card, .token-card, .forecast-item, .stat-item').forEach(el => {
+  el.style.opacity = '0'; el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  io.observe(el);
+});
+</script>
+</body>
+</html>
