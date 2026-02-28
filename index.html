@@ -455,7 +455,7 @@
 <!-- Community -->
 <section class="community-section" id="community">
   <div class="section-label">// join the storm</div>
-  <h2 class="section-title">87,440 <span>Holders</span><br>Watching the Sky</h2>
+  <h2 class="section-title"><span id="community-holders">—</span> <span>Holders</span><br>Watching the Sky</h2>
   <p>Farmers. Meteorologists. Degens. Climate scientists. All united by one truth: you can't fake rain.</p>
   <div class="social-row">
     <a href="https://twitter.com/raincoin_sol" class="social-link">🐦 Twitter / X</a>
@@ -522,8 +522,15 @@ async function fetchTokenStats() {
 
     // Holders — DexScreener doesn't provide holders, use txns as proxy
     const txns = (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0);
+    const makers = pair.info?.holders || pair.makers || txns || 0;
     document.getElementById('s-holders').textContent = txns > 0 ? txns + ' txns' : '—';
     document.getElementById('s-holders-change').textContent = '24h trades';
+
+    // Update community section holder count
+    const communityEl = document.getElementById('community-holders');
+    if (communityEl) {
+      communityEl.textContent = makers > 0 ? makers.toLocaleString() : txns > 0 ? txns + ' traders' : 'Early';
+    }
 
   } catch (err) {
     console.warn('Token stats fetch failed:', err);
